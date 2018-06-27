@@ -487,3 +487,149 @@ SELECT
 */
 
 -- 2). 문자함수
+-- 1. INITCAP(str) : str(영문)의 첫 글자를 대문자로
+SELECT INITCAP('the soap') FROM dual;   -- The Soap
+SELECT INITCAP('안녕') FROM dual;   -- 안녕
+-- 2. LOWER(str) : str(영문)을 소문자로
+SELECT LOWER('MR. SCOTT MCMILLAN') "소문자로 변경" FROM dual; -- mr. scott mcmillan
+-- 3. UPPER(str) : str(영문)을 대문자로
+SELECT UPPER('lee') "대문자로 변경" FROM dual; -- LEE
+-- 4. LENGTH(str), LENGTHB(str) : str의 글자길이를 계산 / str의 글자 byte를 계산
+SELECT 'Hello, SQL의 글자 길이는 ' || LENGTH('Hello, SQL') || '입니다.' "글자 길이" FROM dual;  -- 10
+-- Oracle에서, 영문은 1 byte, 한글은 3 byte로 계산한다.
+SELECT 'Hello, SQL의 글자 바이트는 ' || LENGTHB('Hello, SQL') || '입니다.' "글자 바이트" FROM dual;  -- 10
+SELECT '오라클의 글자 바이트는 ' || LENGTHB('오라클') || '입니다.' "글자 바이트" FROM dual;  -- 9
+-- 5. CONCAT(str1, str2) : str1, str2 문자열 접합. ||와 동일.
+SELECT CONCAT('안녕하세요', ' SQL') FROM dual;   -- 안녕하세요 SQL
+SELECT '안녕하세요' || ' SQL' FROM dual;   -- 안녕하세요 SQL
+-- 6. SUBSTR(str, i, n) : str에서 i번째 위치에서 n개의 글자를 추출. SQL에서 문자열 인덱스를 나타내는 i는 1부터 시작.
+SELECT SUBSTR('Hello, SQL', 3, 4) FROM dual;    -- llo,
+SELECT SUBSTR('Hello, SQL', 3) FROM dual;    -- llo, SQL
+-- 7. INSTR(str1, str2) : str2가 str1에서 어디에 위치하는가? str1에 없으면 0 리턴.
+SELECT INSTR('Hello, SQL', 'lo') FROM dual; -- 4
+-- 8. LPAD(str, n, c), RPAD(str, n, c) :
+-- 입력된 str에 전체 글자의 자리수를 n으로 잡고, 남는 공간에 왼쪽(LPAD)/오른쪽(RPAD)으로 c의 문자를 채워넣는다.
+SELECT LPAD('spl is cooool', 20, '!') FROM dual;    -- !!!!!!!spl is cooool
+SELECT RPAD('spl is cooool', 20, '!') FROM dual;    -- spl is cooool!!!!!!!
+SELECT LPAD('spl is cooool', 4, '!') FROM dual;    -- spl 
+SELECT RPAD('spl is cooool', 4, '!') FROM dual;    -- spl 
+-- 9. LTRIM, RTRIM, TRIM : 입력된 문자열의 왼쪽/오른쪽/양쪽 공백 제거
+SELECT '>' || LTRIM('     sql is cool     ') || '<' FROM dual;  -- >sql is cool     <
+SELECT '>' || RTRIM('     sql is cool     ') || '<' FROM dual;  -- >     sql is cool<
+SELECT '>' || TRIM('     sql is cool     ') || '<' FROM dual;   -- >sql is cool<
+-- 10. NVL(expr1, expr2), NVL2(expr1, expr2, expr3), NULLIF(expr1, expr2)
+-- NVL(expr1, expr2) : 첫번째 식의 값이 NULL이면 두번째 식으로 대체 출력.
+-- mgr가 배정안된 직원은 '매니저 없음'으로 변경하여 출력.
+/*
+SELECT 
+    e.EMPNO
+    ,e.ENAME
+    , NVL(e.MGR, '매니저 없음.') -- e.MGR이 숫자라서 안됨.
+    FROM emp e
+;*/
+SELECT 
+    e.EMPNO
+    ,e.ENAME
+    , NVL(e.MGR || '', '매니저 없음') as MGR    -- ||로 형변환.
+    FROM emp e
+;
+-- NVL2(expr1, expr2, expr3) : 첫번째 식의 값이 NOT NULL이면 두번째 식의 값으로 대체 출력, NULL이면 세번째 식의 값으로 대체 출력.
+SELECT 
+    e.EMPNO
+    ,e.ENAME
+    , NVL2(e.MGR, '매니저 있음', '매니저 없음') as MGR
+    FROM emp e
+;
+-- NULLIF(expr1, expr2) : 첫번째 식, 두번째 식의 수행 결과 값이 동일하면 NULL 출력. 아니면 첫번째 식.
+SELECT 
+    e.EMPNO
+    ,e.ENAME
+    , NULLIF('매니저 있음', '매니저 있음') as MGR
+    FROM emp e
+;
+SELECT NULLIF('매니저 있음', '매니저 있음') as MGR
+    FROM dual
+;   -- 1행짜리 NULL, 0행과는 다르다.
+
+
+
+
+-- 3) 날짜함수 : 날짜 출력 패턴 이용
+SELECT sysdate FROM dual;
+
+-- TO_CHAR() : 숫자/날짜 -> 문자형으로
+SELECT TO_CHAR(sysdate, 'YYYY') FROM dual;
+SELECT TO_CHAR(sysdate, 'YY') FROM dual;
+SELECT TO_CHAR(sysdate, 'MM') FROM dual;
+SELECT TO_CHAR(sysdate, 'MONTH') FROM dual;
+SELECT TO_CHAR(sysdate, 'MON') FROM dual;
+SELECT TO_CHAR(sysdate, 'DD') FROM dual;
+SELECT TO_CHAR(sysdate, 'D') FROM dual;
+SELECT TO_CHAR(sysdate, 'DAY') FROM dual;
+SELECT TO_CHAR(sysdate, 'DY') FROM dual;
+
+-- 패턴조합
+SELECT TO_CHAR(sysdate, 'YYYY-MM-DD') FROM dual;
+SELECT TO_CHAR(sysdate, 'FMYYYY-MM-DD') FROM dual;
+SELECT TO_CHAR(sysdate, 'YY-MONTH-DD') FROM dual;
+SELECT TO_CHAR(sysdate, 'YY-MONTH-DD DAY') FROM dual;
+SELECT TO_CHAR(sysdate, 'YY-MONTH-DD DY') FROM dual;
+
+/*
+시간 패턴
+HH : 시간 두자리
+MI : 분 두자리
+SS : 초 두자리
+HH24 : 24시 체계
+AM : 오전오후 표기
+*/
+SELECT TO_CHAR(sysdate, 'YYYY-MM-DD HH24:MI:SS') FROM dual;
+SELECT TO_CHAR(sysdate, 'YYYY-MM-DD AM HH:MI:SS') FROM dual;
+
+-- 날짜와 숫자의 연산 + -
+SELECT TO_CHAR(sysdate + 10) FROM dual;     -- 10일 후
+SELECT TO_CHAR(sysdate - 10) FROM dual;     -- 10일 전
+SELECT TO_CHAR(sysdate + 10/24) FROM dual;  -- 10시간 후
+SELECT TO_CHAR(sysdate + 10/24, 'YY-MM-DD HH24:MI:SS') FROM dual;  -- 10시간 후
+
+-- 1. MONTHS_BETWEEN(날짜1, 날짜2) : 두 날짜 사이 달의 차이
+SELECT e.ENAME, MONTHS_BETWEEN(sysdate, e.HIREDATE) FROM emp e;
+-- 2. ADD_MONTHS(날짜1, 숫자) : 날짜1 + 숫자만큼 더한 후의 날짜
+SELECT ADD_MONTHS(sysdate, 3) FROM dual;
+-- 3. NEXT_DAY, LAST_DAY : 다음 요일의 날짜, 이 달 마지막 날짜
+SELECT NEXT_DAY(sysdate, '일요일') FROM dual;
+SELECT NEXT_DAY(sysdate, '일') FROM dual;
+SELECT NEXT_DAY(sysdate, 1) FROM dual;
+SELECT LAST_DAY(sysdate) FROM dual;
+-- 4. ROUND, TRUNC : 날짜 반올림/버림
+SELECT ROUND(sysdate) FROM dual;
+SELECT TO_CHAR(ROUND(sysdate), 'YYYY-MM-DD HH24:MI:SS') FROM dual;
+SELECT TO_CHAR(TRUNC(sysdate), 'YYYY-MM-DD HH24:MI:SS') FROM dual;
+SELECT TRUNC(sysdate) FROM dual;
+
+
+
+
+
+-- 4) 데이터타입 변환
+/*
+TO_CHAR() : 숫자, 날짜 -> 문자
+TO_DATE() : 날짜형식의 문자 -> 날짜
+TO_NUMBER() : 숫자로만 구성된 문자열 -> 숫자
+*/
+
+-- 1. TO_CHAR() : 숫자패턴
+-- 숫자패턴에서 9는 한자리 숫자
+SELECT TO_CHAR(12345, '9999') FROM dual;    -- 자리수 부족으로, #####이 나온다.
+SELECT TO_CHAR(12345, '99999') FROM dual;   -- 왼쪽에 정렬. 숫자는 오른쪽 정렬.
+SELECT TO_CHAR(12345, '999999999') data FROM dual;
+SELECT TO_CHAR(12345, '099999999') data FROM dual;
+SELECT TO_CHAR(12345, '9999999.99') data FROM dual;
+SELECT TO_CHAR(12345, '999,999,999') data FROM dual;
+
+-- 2. TO_DATE() : 날짜패턴에 맞는 문자값을 날짜데이터로 변경. YYYY-MM-DD
+SELECT TO_DATE('2018-06-27', 'YYYY-MM-DD') + 10 today FROM dual;
+
+-- 3. TO_NUMBER() : 오라클이 자동 형변환을 해줘서 자주 사용은 안됨.
+SELECT '1000' + 10 result FROM dual;    -- 결과 : 1010
+SELECT TO_NUMBER('1000') + 10 result FROM dual;
