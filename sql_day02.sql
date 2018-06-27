@@ -633,3 +633,130 @@ SELECT TO_DATE('2018-06-27', 'YYYY-MM-DD') + 10 today FROM dual;
 -- 3. TO_NUMBER() : 오라클이 자동 형변환을 해줘서 자주 사용은 안됨.
 SELECT '1000' + 10 result FROM dual;    -- 결과 : 1010
 SELECT TO_NUMBER('1000') + 10 result FROM dual;
+
+
+
+
+-- 5) DECODE(expr, search, result [, search, result]... [, default])
+-- 만약 default가 설정이 안되어있고, expr과 일치하는 search가 없으면 NULL 리턴.
+SELECT DECODE('WHAT'
+    ,'YES', '입력값이 YES입니다.'
+    ,'NO', '입력값이 NO입니다.'
+    ) as "Result"
+    FROM dual
+;   -- expr과 일치하는 search가 없고, default 설정이 안되있으면 NULL. 0행이 아니라.
+
+SELECT DECODE('WHAT'
+    ,'YES', '입력값이 YES입니다.'
+    ,'NO', '입력값이 NO입니다.'
+    , '입력값이 둘 다 아닙니다.') as "Result"
+    FROM dual
+;   -- dafault 있는 버전.
+
+-- emp 테이블의 hiredate의 입사년도를 추출하여 몇년 근무했는지를 계산하고, 장기근속 여부를 판단.
+-- 1) 입사년도 추출 : 패턴 사용
+SELECT
+    e.EMPNO
+    ,e.ENAME
+    ,TO_CHAR(e.HIREDATE, 'YYYY') as hireyear
+    FROM emp e
+;
+-- 2) 몇년근무? 오늘 시스템 날짜와 연산
+SELECT
+    e.EMPNO
+    ,e.ENAME
+    ,TO_CHAR(sysdate, 'YYYY') - TO_CHAR(e.HIREDATE, 'YYYY') as "근무햇수"
+    FROM emp e
+;
+-- 3) 37년 이상 근무자 장기근속으로 판단.
+SELECT
+    a.EMPNO
+    ,a.ENAME
+    ,a.WORKINGYEAR
+    ,DECODE(a.WORKINGYEAR
+        ,37, '장기근속'
+        ,38, '장기근속'
+        ,'장기근속 아님'
+    ) as "장기 근속 여부"
+    FROM (
+    SELECT
+        e.EMPNO
+        ,e.ENAME
+        ,TO_CHAR(sysdate, 'YYYY') - TO_CHAR(e.HIREDATE, 'YYYY') as WORKINGYEAR
+        FROM emp e
+    ) a
+;
+
+-- Job별로 급여 대비 일정 비율로 경조사비를 지급한다.
+-- 각 직원들의 경조사비 지원금은?
+/*
+CLERK : 5%
+SALESMAN : 4%
+MANAGER : 3.7%
+ANALYST : 3%
+PRESIDENT : 1.5%
+*/
+SELECT
+    e.EMPNO
+    ,e.ENAME
+    ,e.SAL
+    ,e.JOB
+    ,DECODE(e.JOB
+        ,'CLERK', e.SAL*0.05
+        ,'SALESMAN', e.SAL*0.04
+        ,'MANAGER', e.SAL*0.037
+        ,'ANALYST', e.SAL*0.03
+        ,'PRESIDENT', e.SAL*0.015
+    ) as "경조사비 지원금"
+    FROM emp e
+;
+/*
+7369	SMITH	800	    CLERK	    40
+7499	ALLEN	1600	SALESMAN	64
+7521	WARD	1250	SALESMAN	50
+7566	JONES	2975	MANAGER	    110.075
+7654	MARTIN	1250	SALESMAN	50
+7698	BLAKE	2850	MANAGER	    105.45
+7782	CLARK	2450	MANAGER	    90.65
+7839	KING	5000	PRESIDENT	75
+7844	TURNER	1500	SALESMAN	60
+7900	JAMES	950	    CLERK	    47.5
+7902	FORD	3000	ANALYST	    90
+7934	MILLER	1300	CLERK	    65
+9999	J_JUNE	500	    CLERK	    25
+8888	J	    400	    CLERK	    20
+7777	J%JONES	300	    CLERK	    15
+*/
+
+-- 출력결과에 숫자패턴 씌우기
+SELECT
+    e.EMPNO
+    ,e.ENAME
+    ,e.SAL
+    ,e.JOB
+    ,TO_CHAR(DECODE(e.JOB
+        ,'CLERK', e.SAL*0.05
+        ,'SALESMAN', e.SAL*0.04
+        ,'MANAGER', e.SAL*0.037
+        ,'ANALYST', e.SAL*0.03
+        ,'PRESIDENT', e.SAL*0.015
+    ),'$999.99') as "경조사비 지원금"
+    FROM emp e
+;
+/*
+7369	SMITH	800	    CLERK	    $40.00
+7499	ALLEN	1600	SALESMAN	$64.00
+7521	WARD	1250	SALESMAN	$50.00
+7566	JONES	2975	MANAGER	    $110.08
+7654	MARTIN	1250	SALESMAN    $50.00
+7698	BLAKE	2850	MANAGER	    $105.45
+7782	CLARK	2450	MANAGER	    $90.65
+7839	KING	5000	PRESIDENT	$75.00
+7844	TURNER	1500	SALESMAN	$60.00
+7900	JAMES	950	    CLERK	    $47.50
+7902	FORD	3000	ANALYST	    $90.00
+7934	MILLER	1300	CLERK	    $65.00
+9999	J_JUNE	500	    CLERK	    $25.00
+8888	J	    400	    CLERK	    $20.00
+7777	J%JONES	300	    CLERK	    $15.00
+*/
