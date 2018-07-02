@@ -120,3 +120,30 @@ END;
 
 EXECUTE log_execution;
 
+-- 실습4)
+CREATE OR REPLACE PROCEDURE log_execution
+(   v_log_user      IN VARCHAR2
+,   v_log_date      OUT DATE)
+IS
+BEGIN
+    INSERT INTO "log_table" VALUES(v_log_user, sysdate);
+    v_log_date := sysdate;
+END log_execution;
+/
+-- Procedure LOG_EXECUTION이(가) 컴파일되었습니다.
+
+-- 실습5)
+CREATE OR REPLACE PROCEDURE chk_sal_per_month
+(   v_sal       IN VARCHAR2
+,   v_sal_month OUT VARCHAR2)
+IS
+BEGIN
+    v_sal_month := v_sal / 12;
+    DBMS_OUTPUT.PUT_LINE(v_sal || '에서 12를 나누면 ' || v_sal_month);
+END chk_sal_per_month;
+/
+-- Procedure CHK_SAL_PER_MONTH이(가) 컴파일되었습니다.
+
+VAR v_month NUMBER;
+EXECUTE chk_sal_per_month(5000, :v_month);
+PRINT v_month;
