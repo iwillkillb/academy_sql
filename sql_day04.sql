@@ -527,7 +527,7 @@ CREATE TABLE member
 -- 테이블 생성 기법 중 이미 존재하는 테이블로부터 복사 생성
 -- 예) 앞서 생성한 member 테이블을 복사 생성 : new_member
 DROP TABLE new_member;
-CREATE TABLE new_member;
+CREATE TABLE new_member
 AS
 SELECT *
     FROM member
