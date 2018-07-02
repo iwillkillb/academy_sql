@@ -221,16 +221,30 @@ SELECT
     ,e.JOB_ID
     FROM employees e JOIN jobs j ON (e.JOB_ID = j.JOB_ID AND j.JOB_ID LIKE 'FI%')
 ;
---서브쿼리로 해결 -- 아직 못함...
+--서브쿼리로 해결
 SELECT j.JOB_ID
     FROM jobs j
-    WHERE j.JOB_ID LIKE 'FI%'
+    WHERE j.JOB_ID = 'FI_ACCOUNT'
+;
+SELECT j.JOB_ID
+    FROM jobs j
+    WHERE j.JOB_ID = 'FI_MGR'
 ;
 SELECT
     e.EMPLOYEE_ID
     ,e.FIRST_NAME
     ,e.LAST_NAME
+    ,e.JOB_ID
     FROM employees e
+    WHERE e.JOB_ID = (
+        SELECT j.JOB_ID
+            FROM jobs j
+            WHERE j.JOB_ID = 'FI_ACCOUNT'
+        ) OR e.JOB_ID = (
+        SELECT j.JOB_ID
+            FROM jobs j
+            WHERE j.JOB_ID = 'FI_MGR'
+        )
 ;
 --6건
 /*
@@ -246,29 +260,143 @@ SELECT
  
 --5. Steven King 의 직속 부하직원의 모든 정보를 조회
 --14건
+SELECT *
+    FROM EMPLOYEES e
+;
+SELECT *
+    FROM EMPLOYEES e
+    WHERE e.MANAGER_ID = 100
+;
+
 -- 조인 이용
 
-
 -- 서브쿼리 이용
-
+SELECT e1.EMPLOYEE_ID
+    FROM EMPLOYEES e1
+    WHERE e1.FIRST_NAME = 'Steven' AND e1.LAST_NAME = 'King'
+;
+SELECT *
+    FROM EMPLOYEES e
+    WHERE e.MANAGER_ID = (
+        SELECT e1.EMPLOYEE_ID
+            FROM EMPLOYEES e1
+            WHERE e1.FIRST_NAME = 'Steven' AND e1.LAST_NAME = 'King'
+    )
+;
+/*
+101	Neena	Kochhar	NKOCHHAR	515.123.4568	05/09/21	AD_VP	17000		100	90
+102	Lex	De Haan	LDEHAAN	515.123.4569	01/01/13	AD_VP	17000		100	90
+114	Den	Raphaely	DRAPHEAL	515.127.4561	02/12/07	PU_MAN	11000		100	30
+120	Matthew	Weiss	MWEISS	650.123.1234	04/07/18	ST_MAN	8000		100	50
+121	Adam	Fripp	AFRIPP	650.123.2234	05/04/10	ST_MAN	8200		100	50
+122	Payam	Kaufling	PKAUFLIN	650.123.3234	03/05/01	ST_MAN	7900		100	50
+123	Shanta	Vollman	SVOLLMAN	650.123.4234	05/10/10	ST_MAN	6500		100	50
+124	Kevin	Mourgos	KMOURGOS	650.123.5234	07/11/16	ST_MAN	5800		100	50
+145	John	Russell	JRUSSEL	011.44.1344.429268	04/10/01	SA_MAN	14000	0.4	100	80
+146	Karen	Partners	KPARTNER	011.44.1344.467268	05/01/05	SA_MAN	13500	0.3	100	80
+147	Alberto	Errazuriz	AERRAZUR	011.44.1344.429278	05/03/10	SA_MAN	12000	0.3	100	80
+148	Gerald	Cambrault	GCAMBRAU	011.44.1344.619268	07/10/15	SA_MAN	11000	0.3	100	80
+149	Eleni	Zlotkey	EZLOTKEY	011.44.1344.429018	08/01/29	SA_MAN	10500	0.2	100	80
+201	Michael	Hartstein	MHARTSTE	515.123.5555	04/02/17	MK_MAN	13000		100	20
+*/
 
 
  
 --6. Steven King의 직속 부하직원 중에서 Commission_pct 값이 null이 아닌 직원 목록
 --5건
+SELECT *
+    FROM EMPLOYEES e
+    WHERE e.MANAGER_ID = (
+        SELECT e1.EMPLOYEE_ID
+            FROM EMPLOYEES e1
+            WHERE e1.FIRST_NAME = 'Steven' AND e1.LAST_NAME = 'King'
+    ) AND e.COMMISSION_PCT IS NOT NULL
+;
+/*
+145	John	Russell	JRUSSEL	011.44.1344.429268	04/10/01	SA_MAN	14000	0.4	100	80
+146	Karen	Partners	KPARTNER	011.44.1344.467268	05/01/05	SA_MAN	13500	0.3	100	80
+147	Alberto	Errazuriz	AERRAZUR	011.44.1344.429278	05/03/10	SA_MAN	12000	0.3	100	80
+148	Gerald	Cambrault	GCAMBRAU	011.44.1344.619268	07/10/15	SA_MAN	11000	0.3	100	80
+149	Eleni	Zlotkey	EZLOTKEY	011.44.1344.429018	08/01/29	SA_MAN	10500	0.2	100	80
+*/
 
 --7. 각 job 별 최대급여를 구하여 출력 job_id, job_title, job별 최대급여 조회
+SELECT
+    MAX(e.SALARY)
+    FROM employees e
+;
+SELECT
+    j.JOB_TITLE
+    ,j.JOB_ID
+    FROM jobs j
+;
+
+SELECT
+    e.JOB_ID
+    ,MAX(e.SALARY)
+    FROM employees e, jobs j
+    GROUP BY e.JOB_ID
+;
 --19건
+/*
+IT_PROG	9000
+AC_MGR	12008
+AC_ACCOUNT	8300
+ST_MAN	8200
+PU_MAN	11000
+AD_ASST	4400
+AD_VP	17000
+SH_CLERK	4200
+FI_ACCOUNT	9000
+FI_MGR	12008
+PU_CLERK	3100
+SA_MAN	14000
+MK_MAN	13000
+PR_REP	10000
+AD_PRES	24000
+SA_REP	11500
+MK_REP	6000
+ST_CLERK	3600
+HR_REP	6500
+*/
 
 
  
 --8. 각 Job 별 최대급여를 받는 사람의 정보를 출력,
 --  급여가 높은 순서로 출력
+SELECT
+    e.JOB_ID
+    ,MAX(e.SALARY) maxsal
+    FROM employees e, jobs j
+    GROUP BY e.JOB_ID
+    ORDER BY maxsal DESC
+;
+
 ----서브쿼리 이용
  
 ----join 이용
 
-
+/*
+AD_PRES	24000
+AD_VP	17000
+SA_MAN	14000
+MK_MAN	13000
+AC_MGR	12008
+FI_MGR	12008
+SA_REP	11500
+PU_MAN	11000
+PR_REP	10000
+FI_ACCOUNT	9000
+IT_PROG	9000
+AC_ACCOUNT	8300
+ST_MAN	8200
+HR_REP	6500
+MK_REP	6000
+AD_ASST	4400
+SH_CLERK	4200
+ST_CLERK	3600
+PU_CLERK	3100
+*/ -- 19건?
 --20건
 
 --9. 7번 출력시 job_id 대신 Job_name, manager_id 대신 Manager의 last_name, department_id 대신 department_name 으로 출력
